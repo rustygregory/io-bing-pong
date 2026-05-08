@@ -23,7 +23,8 @@ const fwCtx = fwCanvas.getContext('2d');
 const paddle = { w: 10, h: 80 };
 const player = { x: 20, y: 160, score: 0 };
 const ai = { x: 770, y: 160, score: 0 };
-const ball = { x: 400, y: 200, dx: 4, dy: 3, r: 12 };
+const ball = { x: 400, y: 200, dx: 4, dy: 3, r: 12, flashColor: null, flashTimer: 0 };
+const flashColors = ['#f0f', '#0ff', '#ff0', '#f90', '#0f0', '#f44'];
 
 let muted = false;
 let paused = false;
@@ -270,15 +271,19 @@ function update() {
 
   // Player paddle collision
   if (ball.x - ball.r <= player.x + paddle.w && ball.y >= player.y && ball.y <= player.y + paddle.h && ball.dx < 0) {
-    ball.dx *= -1.05;
+    ball.dx *= -1.08;
     ball.dy += (ball.y - (player.y + paddle.h / 2)) * 0.1;
+    ball.flashColor = flashColors[Math.floor(Math.random() * flashColors.length)];
+    ball.flashTimer = 30;
     playBounce('paddle');
   }
 
   // AI paddle collision
   if (ball.x + ball.r >= ai.x && ball.y >= ai.y && ball.y <= ai.y + paddle.h && ball.dx > 0) {
-    ball.dx *= -1.05;
+    ball.dx *= -1.08;
     ball.dy += (ball.y - (ai.y + paddle.h / 2)) * 0.1;
+    ball.flashColor = flashColors[Math.floor(Math.random() * flashColors.length)];
+    ball.flashTimer = 30;
     playBounce('paddle');
   }
 
@@ -297,6 +302,8 @@ function update() {
         ball.dy -= 2 * dot * ny;
         ball.x = o.x + nx * (ball.r + o.r + 1);
         ball.y = o.y + ny * (ball.r + o.r + 1);
+        ball.dx *= 1.06;
+        ball.dy *= 1.06;
         playBounce('obstacle');
       }
     }
@@ -367,6 +374,10 @@ function draw() {
   ctx.fillRect(player.x, player.y, paddle.w, paddle.h);
   ctx.fillRect(ai.x, ai.y, paddle.w, paddle.h);
 
+  if (ball.flashTimer > 0) {
+    ctx.fillStyle = ball.flashColor;
+    ball.flashTimer--;
+  }
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
   ctx.fill();
